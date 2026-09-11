@@ -370,8 +370,8 @@ function escapeHtml(str){
 
 async function loadEntries(){
   try{
-    const result = await window.storage.get('entries-list', false);
-    entries = result ? JSON.parse(result.value) : [];
+    const raw = localStorage.getItem('buku-kas-entries');
+    entries = raw ? JSON.parse(raw) : [];
   }catch(err){
     entries = [];
   }
@@ -381,7 +381,7 @@ async function loadEntries(){
 
 async function saveEntries(){
   try{
-    await window.storage.set('entries-list', JSON.stringify(entries), false);
+    localStorage.setItem('buku-kas-entries', JSON.stringify(entries));
   }catch(err){
     console.error('Gagal menyimpan', err);
   }
