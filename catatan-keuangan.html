@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buku Kas Harian</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F6F3EC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Buku Kas">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --paper:#F6F3EC;
+    --ink:#1E2A2B;
+    --ink-soft:#5B6667;
+    --line: #D8D2C2;
+    --income:#4C6E54;
+    --income-soft:#E4ECE2;
+    --expense:#A6472E;
+    --expense-soft:#F3E3DC;
+    --accent:#B08D3F;
+    --card:#FFFFFF;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:28px 20px 80px;
+  }
+  header{
+    margin-bottom:22px;
+  }
+  .eyebrow{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 2px;
+  }
+  h1{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:30px;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+  }
+
+  .balance-row{
+    display:flex;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .balance-card{
+    flex:1;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .balance-card .label{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .balance-card .num{
+    font-family:'Source Serif 4',serif;
+    font-size:22px;
+    font-weight:600;
+  }
+  .balance-card.total .num{ font-size:26px; }
+  .num.pos{ color:var(--income); }
+  .num.neg{ color:var(--expense); }
+
+  form{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:26px;
+  }
+  .toggle{
+    display:flex;
+    background:var(--paper);
+    border-radius:8px;
+    padding:3px;
+    margin-bottom:12px;
+    border:1px solid var(--line);
+  }
+  .toggle button{
+    flex:1;
+    padding:8px 0;
+    border:none;
+    background:transparent;
+    border-radius:6px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .toggle button.active.income{ background:var(--income-soft); color:var(--income); }
+  .toggle button.active.expense{ background:var(--expense-soft); color:var(--expense); }
+
+  .field-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .field{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .field label{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  input, select{
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    padding:10px 11px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--paper);
+    color:var(--ink);
+    width:100%;
+  }
+  input:focus, select:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  .submit-btn{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    color:#fff;
+    margin-top:4px;
+  }
+  .submit-btn.income{ background:var(--income); }
+  .submit-btn.expense{ background:var(--expense); }
+
+  .ledger-heading{
+    font-family:'Source Serif 4',serif;
+    font-size:18px;
+    font-weight:600;
+    margin:0 0 12px;
+  }
+  .day-group{ margin-bottom:20px; }
+  .day-label{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+  }
+  .entry{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 2px;
+    border-bottom:1px solid var(--line);
+    gap:10px;
+  }
+  .entry:last-child{ border-bottom:none; }
+  .entry-left{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .entry-desc{ font-size:14.5px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .entry-cat{ font-size:12px; color:var(--ink-soft); }
+  .entry-right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .entry-amt{ font-size:15px; font-weight:600; white-space:nowrap; }
+  .del-btn{
+    border:none;
+    background:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+    font-size:16px;
+    padding:2px 4px;
+    line-height:1;
+  }
+  .del-btn:hover{ color:var(--expense); }
+
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14px;
+    padding:30px 10px;
+    background:var(--card);
+    border:1px dashed var(--line);
+    border-radius:10px;
+  }
+
+  .loading{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:40px 0;
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Buku Kas</p>
+    <h1>Pengeluaran &amp; Pemasukan Harian</h1>
+  </header>
+
+  <div class="balance-row" id="balanceRow"></div>
+
+  <form id="entryForm">
+    <div class="toggle">
+      <button type="button" id="btnIncome" class="income">Pemasukan</button>
+      <button type="button" id="btnExpense" class="expense">Pengeluaran</button>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="desc">Keterangan</label>
+        <input id="desc" type="text" placeholder="Contoh: Makan siang" required>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="amount">Jumlah (Rp)</label>
+        <input id="amount" type="number" min="0" step="1" placeholder="0" required>
+      </div>
+      <div class="field">
+        <label for="category">Kategori</label>
+        <select id="category"></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="date">Tanggal</label>
+        <input id="date" type="date" required>
+      </div>
+    </div>
+    <button type="submit" class="submit-btn income" id="submitBtn">Simpan Pemasukan</button>
+  </form>
+
+  <p class="ledger-heading">Riwayat</p>
+  <div id="ledger"><div class="loading">Memuat catatan...</div></div>
+</div>
+
+<script>
+const CATS = {
+  income: ['Gaji', 'Bonus', 'Usaha Sampingan', 'Hadiah', 'Lainnya'],
+  expense: ['Makanan', 'Transportasi', 'Belanja', 'Tagihan', 'Kesehatan', 'Hiburan', 'Lainnya']
+};
+
+let type = 'income';
+let entries = [];
+
+const $ = id => document.getElementById(id);
+
+function fmtRupiah(n){
+  return 'Rp' + Math.abs(n).toLocaleString('id-ID');
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function setType(t){
+  type = t;
+  $('btnIncome').classList.toggle('active', t==='income');
+  $('btnIncome').classList.toggle('income', t==='income');
+  $('btnExpense').classList.toggle('active', t==='expense');
+  $('btnExpense').classList.toggle('expense', t==='expense');
+  $('submitBtn').className = 'submit-btn ' + t;
+  $('submitBtn').textContent = t==='income' ? 'Simpan Pemasukan' : 'Simpan Pengeluaran';
+  populateCategories();
+}
+
+function populateCategories(){
+  const sel = $('category');
+  sel.innerHTML = '';
+  CATS[type].forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function dayLabel(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+function renderBalance(){
+  const income = entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+  const expense = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+  const total = income - expense;
+  $('balanceRow').innerHTML = `
+    <div class="balance-card total">
+      <div class="label">Saldo</div>
+      <div class="num ${total>=0?'pos':'neg'}">${total<0?'-':''}${fmtRupiah(total)}</div>
+    </div>
+    <div class="balance-card">
+      <div class="label">Pemasukan</div>
+      <div class="num pos">${fmtRupiah(income)}</div>
+    </div>
+    <div class="balance-card">
+      <div class="label">Pengeluaran</div>
+      <div class="num neg">${fmtRupiah(expense)}</div>
+    </div>
+  `;
+}
+
+function renderLedger(){
+  const el = $('ledger');
+  if(entries.length === 0){
+    el.innerHTML = '<div class="empty">Belum ada catatan. Tambahkan transaksi pertamamu di atas.</div>';
+    return;
+  }
+  const sorted = [...entries].sort((a,b)=> b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+  const groups = {};
+  sorted.forEach(e => {
+    if(!groups[e.date]) groups[e.date] = [];
+    groups[e.date].push(e);
+  });
+  let html = '';
+  Object.keys(groups).forEach(date => {
+    const dayEntries = groups[date];
+    const dayTotal = dayEntries.reduce((s,e)=> s + (e.type==='income'?e.amount:-e.amount), 0);
+    html += `<div class="day-group">
+      <div class="day-label"><span>${dayLabel(date)}</span><span>${dayTotal>=0?'+':'-'}${fmtRupiah(dayTotal)}</span></div>`;
+    dayEntries.forEach(e => {
+      html += `<div class="entry">
+        <div class="entry-left">
+          <div class="entry-desc">${escapeHtml(e.desc)}</div>
+          <div class="entry-cat">${escapeHtml(e.category)}</div>
+        </div>
+        <div class="entry-right">
+          <div class="entry-amt ${e.type==='income'?'pos':'neg'}">${e.type==='income'?'+':'-'}${fmtRupiah(e.amount)}</div>
+          <button class="del-btn" data-id="${e.id}" title="Hapus">✕</button>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteEntry(btn.dataset.id));
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+async function loadEntries(){
+  try{
+    const result = await window.storage.get('entries-list', false);
+    entries = result ? JSON.parse(result.value) : [];
+  }catch(err){
+    entries = [];
+  }
+  renderBalance();
+  renderLedger();
+}
+
+async function saveEntries(){
+  try{
+    await window.storage.set('entries-list', JSON.stringify(entries), false);
+  }catch(err){
+    console.error('Gagal menyimpan', err);
+  }
+}
+
+async function deleteEntry(id){
+  entries = entries.filter(e => e.id !== id);
+  renderBalance();
+  renderLedger();
+  await saveEntries();
+}
+
+$('btnIncome').addEventListener('click', ()=>setType('income'));
+$('btnExpense').addEventListener('click', ()=>setType('expense'));
+
+$('entryForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const desc = $('desc').value.trim();
+  const amount = parseFloat($('amount').value);
+  const category = $('category').value;
+  const date = $('date').value || todayStr();
+  if(!desc || !amount || amount <= 0) return;
+
+  entries.push({
+    id: 'e' + Date.now() + Math.random().toString(36).slice(2,7),
+    type, desc, amount, category, date,
+    createdAt: Date.now()
+  });
+
+  renderBalance();
+  renderLedger();
+  await saveEntries();
+
+  $('desc').value = '';
+  $('amount').value = '';
+  $('desc').focus();
+});
+
+// init
+$('date').value = todayStr();
+populateCategories();
+setType('income');
+loadEntries();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
